@@ -24,7 +24,7 @@
     "not op_mini all"
   ],
   "devDependencies": {
-    "clevis": "github:austintgriffith/clevis#0.1.0",
+    "clevis": "^0.1.3",
     "openzeppelin-solidity": "^2.0.0"
   }
 }

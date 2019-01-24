@@ -114,11 +114,29 @@ contract VendingMachine is AdminRole, WhitelistedRole {
     deposit();
   }
 
+  /**
+  * @dev Deposit currency in order to buy tokens from the ERC20Contract
+  * Will buy tokens at a 1-to-1 ratio. User will also be given an allowance to withdraw the same amount.
+  */
   function deposit() public payable {
-    allowance[msg.sender] = allowace[msg.sender].add(msg.value)
+    _addAllowance(msg.sender, msg.value);
 
     tokenContract.mint(msg.sender, msg.value);
     emit Deposit(msg.sender, msg.value);
+  }
+
+  /**
+  * @dev Admin hook to increment an account's withdraw allowance.
+  * Could be useful if they don't want to give the user unlimited withdraw by whitelisting them
+  * @param account The address to receive the increased allowance.
+  * @param amount The amount to increase the allowance
+  */
+  function addAllowance(address account, uint256 amount) public onlyAdmin {
+    _addAllowance(account, amount);
+  }
+
+  function _addAllowance(address account, uint256 amount) private {
+    allowance[msg.sender] = allowance[msg.sender].add(msg.value);
   }
 
   function withdraw(uint256 amount) public {

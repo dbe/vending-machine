@@ -3,4 +3,7 @@
   module.exports = ["hello world"]
 */
 
-module.exports = []
+module.exports = [
+  "Vendy",
+  "VEND"
+]

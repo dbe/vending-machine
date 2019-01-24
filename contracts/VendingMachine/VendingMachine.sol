@@ -10,9 +10,11 @@ contract AdminRole {
   event AdminRemoved(address indexed account);
 
   Roles.Role private admins;
+  address public superAdmin;
 
   constructor() public {
     _addAdmin(msg.sender);
+    superAdmin = msg.sender;
   }
 
   modifier onlyAdmin() {
@@ -20,12 +22,25 @@ contract AdminRole {
     _;
   }
 
+  modifier onlySuperAdmin() {
+    require(isSuperAdmin(msg.sender));
+    _;
+  }
+
   function isAdmin(address account) public view returns (bool) {
     return admins.has(account);
   }
 
-  function addAdmin(address account) public onlyAdmin {
+  function isSuperAdmin(address account) public view returns (bool) {
+    return account == superAdmin;
+  }
+
+  function addAdmin(address account) public onlySuperAdmin {
     _addAdmin(account);
+  }
+
+  function removeAdmin(address account) public onlySuperAdmin {
+    _removeAdmin(account);
   }
 
   function renounceAdmin() public {
@@ -85,13 +100,13 @@ contract WhitelistedRole is AdminRole {
 
 contract VendingMachine is AdminRole, WhitelistedRole {
   ERC20Vendable public tokenContract;
+  mapping (address => uint256) public allowance;
 
   event Deposit(address indexed depositor, uint amount);
   event Withdraw(address indexed withdrawer, uint amount);
 
-  constructor() public {
-    //TODO: Make this paramaterizable potentially
-    tokenContract = new ERC20Vendable("DenDai", "DEN");
+  constructor(string memory _name, string memory _symbol) public {
+    tokenContract = new ERC20Vendable(_name, _symbol);
   }
 
   //Fallback. Just send currency here to deposit
@@ -100,19 +115,29 @@ contract VendingMachine is AdminRole, WhitelistedRole {
   }
 
   function deposit() public payable {
+    allowance[msg.sender] = allowace[msg.sender].add(msg.value)
+
     tokenContract.mint(msg.sender, msg.value);
     emit Deposit(msg.sender, msg.value);
   }
 
-  function withdraw(uint256 amount) public onlyWhitelisted {
+  function withdraw(uint256 amount) public {
+    if(isWhitelisted(msg.sender)) {
+      _withdraw(amount);
+    } else {
+      require(amount <= allowance[msg.sender]);
+      allowance[msg.sender] = allowance[msg.sender].sub(amount);
+      _withdraw(amount);
+    }
+  }
+
+  function _withdraw(uint256 amount) private {
     tokenContract.burn(msg.sender, amount);
     msg.sender.transfer(amount);
-
     emit Withdraw(msg.sender, amount);
   }
 
-  //TODO: Decide if we want to trust the admin system enough to allow this form of functionality
-  function sweep(uint256 amount) public onlyAdmin {
+  function sweep(uint256 amount) public onlySuperAdmin {
       msg.sender.transfer(amount);
   }
 

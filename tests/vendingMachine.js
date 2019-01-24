@@ -2,10 +2,9 @@
 
 const assert = require('assert')
 const clevis = require('clevis')
-const expect = require('chai').expect
+const { expect } = require('chai')
 const fs = require('fs')
-const web3 = require('web3')
-const BN = web3.utils.BN;
+const { BN } = require('web3').utils
 
 describe('VendingMachine', function() {
   this.timeout(90000);

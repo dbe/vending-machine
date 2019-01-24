@@ -4,7 +4,8 @@ const assert = require('assert')
 const clevis = require('clevis')
 const expect = require('chai').expect
 const fs = require('fs')
-// const BN = web3.utils.BN;
+const web3 = require('web3')
+const BN = web3.utils.BN;
 
 describe('VendingMachine', function() {
   this.timeout(90000);
@@ -59,29 +60,28 @@ describe('VendingMachine', function() {
 
   it("should not allow unauthorized withdrawls", async function () {
     let tx = clevis('contract', 'withdraw', 'VendingMachine', 0, 100)
-    // .then(d => {
-    //   console.log('d: ', d);
-    // })
-    // .catch(e => {
-    //   console.log('e in tessssst: ', e);
-    // })
     await assert.rejects(tx, "Should reject this tx")
   });
 
-  // it("should allow whitelisted withdrawls", async function () {
-  //   await VendingMachine.methods.addWhitelisted(accounts[0]).send({from: accounts[0]});
-  //
-  //   let balanceBefore = new BN(await web3.eth.getBalance(accounts[0]))
-  //   let tx = await VendingMachine.methods.withdraw(100).send({from: accounts[0], gasPrice: 1});
-  //   let balanceAfter = await web3.eth.getBalance(accounts[0]);
-  //
-  //   let expected = balanceBefore.sub(new BN(tx.gasUsed)).add(new BN(100)).toString();
-  //   expect(expected).to.equal(balanceAfter)
-  //
-  //   let tokenBalance = await ERC20Vendable.methods.balanceOf(accounts[0]).call();
-  //   expect(tokenBalance).to.equal('0')
-  // });
-  //
+  it("should allow whitelisted withdrawls", async function () {
+    await clevis('contract', 'addWhitelisted', 'VendingMachine', 0, accounts[0])
+    let isWhitelisted = await clevis('contract', 'isWhitelisted', 'VendingMachine', accounts[0])
+    expect(isWhitelisted).to.equal(true)
+
+    let ercBalance = await clevis('contract', 'balanceOf', 'ERC20Vendable', accounts[0])
+    let totalSupplyBefore = await clevis('contract', 'totalSupply', 'ERC20Vendable')
+
+    await clevis('contract', 'withdraw', 'VendingMachine', 0, ercBalance)
+
+    let ercBalanceAfter = await clevis('contract', 'balanceOf', 'ERC20Vendable', accounts[0])
+    expect(ercBalanceAfter).to.equal('0')
+
+    let totalSupplyAfter = await clevis('contract', 'totalSupply', 'ERC20Vendable')
+    expect(totalSupplyAfter).to.equal(new BN(totalSupplyBefore).sub(new BN(ercBalance)).toString())
+
+    //TODO: Should be testing that the recipient got the correct amount of cash, but gas price with clevis is a pita atm.
+  });
+
   // it("should be able to add a Vendor", async function () {
   //   await VendingMachine.methods.addVendor(
   //     accounts[1],

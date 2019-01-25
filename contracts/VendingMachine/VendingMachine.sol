@@ -100,7 +100,7 @@ contract WhitelistedRole is AdminRole {
 
 contract VendingMachine is AdminRole, WhitelistedRole {
   using SafeMath for uint256;
-  
+
   ERC20Vendable public tokenContract;
   mapping (address => uint256) public allowance;
 
@@ -164,10 +164,10 @@ contract VendingMachine is AdminRole, WhitelistedRole {
   //*****************  Product/Vendor related code *******************//
 
   mapping (address => Vendor) public vendors;
-  /* mapping (address => uint32) public productCount;
-  mapping (address => mapping (uint256 => Product)) public products; */
+  mapping (address => mapping (uint256 => Product)) public products;
 
-  event UpdateVendor(address indexed vendorAddress, bytes32 name, bool isAllowed, bool isActive, address sender);
+  event UpdateVendor(address indexed vendor, bytes32 name, bool isActive, bool isAllowed, address sender);
+  event AddProduct(address indexed vendor, uint256 id, uint256 cost, bytes32 name, bool isAvailable);
 
   struct Vendor {
     bytes32 name;
@@ -176,13 +176,26 @@ contract VendingMachine is AdminRole, WhitelistedRole {
     bool exists;
   }
 
-  /* struct Product {
+  struct Product {
     uint256 id;
     uint256 cost;
     bytes32 name;
     bool exists;
     bool isAvailable;
-  } */
+  }
+
+  function addProduct(uint256 id, bytes32 name, uint256 cost, bool isAvailable) public {
+    require(vendors[msg.sender].isAllowed, "VendingMachine::addProduct - vendor is not allowed by admin");
+    products[msg.sender][id] = Product({
+      id: id,
+      cost: cost,
+      name: name,
+      exists: true,
+      isAvailable: isAvailable
+    });
+
+    emit AddProduct(msg.sender, id, cost, name, isAvailable);
+  }
 
   function addVendor(address _vendorAddress, bytes32 _name) public onlyAdmin {
     require(!vendors[_vendorAddress].exists, "This address already is a vendor.");

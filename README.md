@@ -1,5 +1,5 @@
 # Disclaimer
-Contract code under development still. I wouldn't suggest you use it to vend much of anything yet :)
+Contract code under development still. Expect things to still be broken or unfinished. 
 
 ## Local Testing
 This project uses clevis to build/deploy and test contracts. The library is still a bit rough around the edges, so excuse the workflow.
@@ -16,6 +16,8 @@ You can just accept the defaults for the directories in clevis init. Now to run 
 ```
 npm run clevis test VendingMachine
 ```
+
+You will need a local blockchain running (Something like Ganache) and make sure your clevis.json file is pointed to it.
 
 ## Notes
 The design decisions made for this contract are different than an ideal, or more general purpose contract would make.

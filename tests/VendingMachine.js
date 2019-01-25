@@ -4,7 +4,7 @@ const assert = require('assert')
 const clevis = require('clevis')
 const { expect } = require('chai')
 const fs = require('fs')
-const { BN } = require('web3').utils
+const { BN, hexToUtf8, utf8ToHex } = require('web3').utils
 
 describe('VendingMachine', function() {
   this.timeout(90000);
@@ -15,8 +15,6 @@ describe('VendingMachine', function() {
 
   before(async function() {
     accounts = await clevis('accounts')
-    console.log('accounts: ', accounts);
-
 
     //This is just to make sure that we have the abi etc generated.
     //Clevis shouldn't require the contract do be explicitly deployed to fetch the ABI or call contract functions
@@ -82,34 +80,20 @@ describe('VendingMachine', function() {
     //TODO: Should be testing that the recipient got the correct amount of cash, but gas price with clevis is a pita atm.
   });
 
-  // it("should be able to add a Vendor", async function () {
-  //   await VendingMachine.methods.addVendor(
-  //     accounts[1],
-  //     web3.utils.utf8ToHex("First Vendor")
-  //   ).send({from: accounts[0]});
-  //
-  //   let vendor = await VendingMachine.methods.vendors(accounts[1]).call();
-  //   expect(web3.utils.hexToUtf8(vendor.name)).to.equal("First Vendor");
-  //   expect(vendor.isActive).to.equal(false);
-  //   expect(vendor.isAllowed).to.equal(true);
-  //   expect(vendor.exists).to.equal(true);
-  // });
-  //
-  // it("should not be able to add the same vendor twice", async function () {
-  //   let tx = VendingMachine.methods.addVendor(
-  //     accounts[1],
-  //     web3.utils.utf8ToHex("Second Vendor")
-  //   ).send({from: accounts[0]});
-  //
-  //   await assert.rejects(tx, "Should not allow the same vendor to be created twice.");
-  // });
-  //
-  // it("should not be able to add a vendor unless an Administrator", async function () {
-  //   let tx = VendingMachine.methods.addVendor(
-  //     accounts[2],
-  //     web3.utils.utf8ToHex("Third Vendor")
-  //   ).send({from: accounts[1]});
-  //
-  //   await assert.rejects(tx, "Should not allow the a non-admin to create vendors.");
-  // });
+  it("should be able to add a Vendor", async function () {
+    let tx = clevis('contract', 'addVendor', 'VendingMachine', 1, accounts[1], utf8ToHex('First Vendor'))
+    await assert.rejects(tx, "Non-admins shouldn't be able to add vendors")
+
+    await clevis('contract', 'addVendor', 'VendingMachine', 0, accounts[1], utf8ToHex('First Vendor'))
+    let vendor = await clevis('contract', 'vendors', 'VendingMachine', accounts[1])
+    expect(hexToUtf8(vendor.name)).to.equal('First Vendor');
+    expect(vendor.isActive).to.equal(false);
+    expect(vendor.isAllowed).to.equal(true);
+    expect(vendor.exists).to.equal(true);
+  });
+
+  it("should not be able to add the same vendor twice", async function () {
+    let tx = clevis('contract', 'addVendor', 'VendingMachine', 0, accounts[1], utf8ToHex('First Vendor Again'))
+    await assert.rejects(tx, "Shouldn't be able to add the same vendor account again.")
+  });
 })

@@ -1,6 +1,19 @@
 # Disclaimer
 Contract code under development still. I wouldn't suggest you use it to vend much of anything yet :)
 
+## Local Testing
+This project uses clevis to build/deploy and test contracts. The library is still a bit rough around the edges, so excuse the workflow.
+
+To run tests:
+```
+git clone git@github.com:dbe/vending-machine.git
+cd vending-machine
+npm i
+npm run clevis init   #Just accept default directories
+npm run clevis test VendingMachine
+
+```
+
 ## Notes
 The design decisions made for this contract are different than an ideal, or more general purpose contract would make.
 

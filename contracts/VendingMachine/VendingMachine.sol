@@ -99,6 +99,8 @@ contract WhitelistedRole is AdminRole {
 }
 
 contract VendingMachine is AdminRole, WhitelistedRole {
+  using SafeMath for uint256;
+  
   ERC20Vendable public tokenContract;
   mapping (address => uint256) public allowance;
 
@@ -136,7 +138,7 @@ contract VendingMachine is AdminRole, WhitelistedRole {
   }
 
   function _addAllowance(address account, uint256 amount) private {
-    allowance[msg.sender] = allowance[msg.sender].add(msg.value);
+    allowance[account] = allowance[account].add(amount);
   }
 
   function withdraw(uint256 amount) public {

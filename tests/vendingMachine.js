@@ -15,6 +15,7 @@ describe('VendingMachine', function() {
 
   before(async function() {
     accounts = await clevis('accounts')
+    console.log('accounts: ', accounts);
 
 
     //This is just to make sure that we have the abi etc generated.

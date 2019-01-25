@@ -25,6 +25,6 @@
   ],
   "devDependencies": {
     "clevis": "github:austintgriffith/clevis#fix-tests",
-    "openzeppelin-solidity": "^2.0.0"
+    "openzeppelin-solidity": "2.0.0"
   }
 }

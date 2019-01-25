@@ -9,9 +9,12 @@ To run tests:
 git clone git@github.com:dbe/vending-machine.git
 cd vending-machine
 npm i
-npm run clevis init   #Just accept default directories
-npm run clevis test VendingMachine
+npm run clevis init
+```
+You can just accept the defaults for the directories in clevis init. Now to run tests just run:
 
+```
+npm run clevis test VendingMachine
 ```
 
 ## Notes

@@ -107,8 +107,8 @@ contract VendingMachine is AdminRole, WhitelistedRole {
   event Deposit(address indexed depositor, uint amount);
   event Withdraw(address indexed withdrawer, uint amount);
 
-  constructor(string memory _name, string memory _symbol) public {
-    tokenContract = new ERC20Vendable(_name, _symbol);
+  constructor(address _tokenContract) public {
+    tokenContract = ERC20Vendable(_tokenContract);
   }
 
   //Fallback. Just send currency here to deposit

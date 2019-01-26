@@ -11,23 +11,19 @@ describe('VendingMachine', function() {
 
   let accounts = []
   let machineAddress;
-  let tokenAddress;
 
   before(async function() {
     accounts = await clevis('accounts')
 
-    //This is just to make sure that we have the abi etc generated.
-    //Clevis shouldn't require the contract do be explicitly deployed to fetch the ABI or call contract functions
     await clevis('compile', 'ERC20Vendable')
-    await clevis('deploy', 'ERC20Vendable', '0')
+    let erc20Tx = await clevis('deploy', 'ERC20Vendable', '0')
+
+    //Hacky as fuck due to how clevis uses constructor args
+    fs.writeFileSync(`${process.cwd()}/contracts/VendingMachine/arguments.js`, `module.exports = ['${erc20Tx.contractAddress}']`)
 
     await clevis('compile', 'VendingMachine')
-    let result = await clevis('deploy', 'VendingMachine', '0')
-    machineAddress = result.contractAddress
-
-    //Hacky.af We need to add a way for clevis to instantiate the contract with a different address
-    let tokenAddress = await clevis('contract', 'tokenContract', 'VendingMachine')
-    fs.writeFileSync(`${process.cwd()}/contracts/ERC20Vendable/ERC20Vendable.address`, tokenAddress)
+    let vendTx = await clevis('deploy', 'VendingMachine', '0')
+    machineAddress = vendTx.contractAddress
   });
 
   it("should start with a 0 balance", async function () {
@@ -35,9 +31,24 @@ describe('VendingMachine', function() {
     expect(balance, "Should start with 0 balance").to.equal('0');
   })
 
-  it("should configure ERC20Vendable correctly", async function () {
-    let creator = await clevis('contract', 'creator', 'ERC20Vendable')
-    expect(creator, "Creator should be the VendingMachine").to.equal(machineAddress);
+  it("should start off with no vendingMachine assigned", async function () {
+    let vendingMachine = await clevis('contract', 'vendingMachine', 'ERC20Vendable')
+    expect(vendingMachine, "Vending machine should be address 0").to.equal('0x0000000000000000000000000000000000000000');
+  });
+
+  it("should only allow owner to set Vending Machine", async function () {
+    let tx = clevis('contract', 'changeVendingMachine', 'ERC20Vendable', 1, machineAddress)
+    await assert.rejects(tx, "Only the onwer should be allowed to set the vendingMachine addr")
+
+    await clevis('contract', 'changeVendingMachine', 'ERC20Vendable', 0, machineAddress)
+    let vendingMachine = await clevis('contract', 'vendingMachine', 'ERC20Vendable')
+    
+    expect(vendingMachine, "Vending machine should be address 0").to.equal(machineAddress);
+  });
+
+  it("should have assigned the correct owner", async function () {
+    let owner = await clevis('contract', 'owner', 'ERC20Vendable')
+    expect(owner, "Owner should be account 0").to.equal(accounts[0]);
   });
 
   it("should mint correctly with fallback", async function () {

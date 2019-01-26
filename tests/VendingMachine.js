@@ -96,4 +96,12 @@ describe('VendingMachine', function() {
     let tx = clevis('contract', 'addVendor', 'VendingMachine', 0, accounts[1], utf8ToHex('First Vendor Again'))
     await assert.rejects(tx, "Shouldn't be able to add the same vendor account again.")
   });
+
+
+  //TODO: Things to test:
+  //Super admin abilities (add/remove admins, sweep)
+  //Admin only stuff (increase allowance, modify vendors)
+  //Products
+  //Vendor self-updating
+  //Events
 })
